@@ -16,20 +16,32 @@ import { Route as rootRoute } from './routes/__root'
 
 // Create Virtual Routes
 
-const AboutLazyImport = createFileRoute('/about')()
+const LandUseLazyImport = createFileRoute('/land-use')()
 const IndexLazyImport = createFileRoute('/')()
+const LandUseTaxLotTaxLotBblLazyImport = createFileRoute(
+  '/land-use/tax-lot/$taxLotBbl',
+)()
 
 // Create/Update Routes
 
-const AboutLazyRoute = AboutLazyImport.update({
-  path: '/about',
+const LandUseLazyRoute = LandUseLazyImport.update({
+  path: '/land-use',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/land-use.lazy').then((d) => d.Route))
 
 const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const LandUseTaxLotTaxLotBblLazyRoute = LandUseTaxLotTaxLotBblLazyImport.update(
+  {
+    path: '/tax-lot/$taxLotBbl',
+    getParentRoute: () => LandUseLazyRoute,
+  } as any,
+).lazy(() =>
+  import('./routes/land-use.tax-lot.$taxLotBbl.lazy').then((d) => d.Route),
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -39,15 +51,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      preLoaderRoute: typeof AboutLazyImport
+    '/land-use': {
+      preLoaderRoute: typeof LandUseLazyImport
       parentRoute: typeof rootRoute
+    }
+    '/land-use/tax-lot/$taxLotBbl': {
+      preLoaderRoute: typeof LandUseTaxLotTaxLotBblLazyImport
+      parentRoute: typeof LandUseLazyImport
     }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([IndexLazyRoute, AboutLazyRoute])
+export const routeTree = rootRoute.addChildren([
+  IndexLazyRoute,
+  LandUseLazyRoute.addChildren([LandUseTaxLotTaxLotBblLazyRoute]),
+])
 
 /* prettier-ignore-end */
